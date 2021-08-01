@@ -1,5 +1,5 @@
 use eyre::Error;
-use std::fmt::{format, Display};
+use std::fmt::Display;
 
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
