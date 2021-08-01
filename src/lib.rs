@@ -1,5 +1,5 @@
 use eyre::Error;
-use std::fmt::Display;
+use std::fmt::{format, Display};
 
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -142,6 +142,25 @@ struct Flags {
     units: String,
 }
 
+fn get_weather_icon(iconstr: &str) -> &str {
+    match iconstr {
+        "clear-day" => "☀️",
+        "clear-night" => "🌙",
+        "rain" => "🌧",
+        "snow" => "🌨",
+        "sleet" => "🌨",
+        "wind" => "💨",
+        "fog" => "🌫",
+        "cloudy" => "☁️",
+        "partly-cloudy-day" => "⛅️",
+        "partly-cloudy-night" => "🌙",
+        "hail" => "🌧",
+        "thunderstorm" => "⛈",
+        "tornado" => "🌪",
+        _ => "",
+    }
+}
+
 impl DarkskyResult {
     pub async fn new(api_key: &str, lat: Decimal, lng: Decimal) -> Result<DarkskyResult, Error> {
         let request_url = format!(
@@ -161,36 +180,19 @@ impl DarkskyResult {
             _ => "C",
         }
     }
-    fn get_currently_icon(&self) -> String {
-        match self.currently.icon.as_str() {
-            "clear-day" => "☀️",
-            "clear-night" => "🌙",
-            "rain" => "🌧",
-            "snow" => "🌨",
-            "sleet" => "🌨",
-            "wind" => "💨",
-            "fog" => "🌫",
-            "cloudy" => "☁️",
-            "partly-cloudy-day" => "⛅️",
-            "partly-cloudy-night" => "🌙",
-            "hail" => "🌧",
-            "thunderstorm" => "⛈",
-            "tornado" => "🌪",
-            _ => "",
-        }
-        .to_string()
+    fn get_current_weather_str(&self) -> String {
+        format!(
+            "{:.1}°{} {} {}",
+            self.currently.temperature,
+            self.get_unit(),
+            get_weather_icon(self.currently.icon.as_str()),
+            self.currently.summary
+        )
     }
 }
 
 impl Display for DarkskyResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}°{} {} {}",
-            self.currently.temperature,
-            self.get_unit(),
-            self.get_currently_icon(),
-            self.currently.summary,
-        )
+        write!(f, "{}", self.get_current_weather_str())
     }
 }
